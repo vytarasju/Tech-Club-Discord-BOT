@@ -9,6 +9,10 @@ const commands = [
     name: 'pang',
     description: 'Gives you a reply',
   },
+  {
+    name:'joke',
+    description:'Replies with a joke',
+  }
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -30,6 +34,10 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 //Defining rules
 const client = new Client({ intents: [7796] })
 
+
+const {SlashCommandBuilder} = require('discord.js');
+const {generateJoke} = require('./joke_generator.js');
+
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
@@ -40,7 +48,13 @@ client.on('interactionCreate', async interaction => {
   if (interaction.commandName === 'pang') {
     await interaction.reply('Pong!');
   }
-});
+
+  if (interaction.commandName === 'joke') {
+    await interaction.reply(generateJoke());
+  }
+
+  }
+);
 
 //Starting BOT
 client.login(TOKEN);
