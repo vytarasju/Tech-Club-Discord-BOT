@@ -3,7 +3,10 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {Client, Events, GatewayIntentBits, Collection} = require('discord.js');
 
-const client = new Client({intents: [7796]});
+const client = new Client({
+	intents: 32767, 
+	partials: ['USER', 'REACTION', 'MESSAGE']
+});
 
 client.commands=new Collection();
 
