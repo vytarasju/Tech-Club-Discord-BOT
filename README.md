@@ -1,5 +1,5 @@
 # Techy
-Cloned from: https://github.com/Ake3m/Techy
+Origianlly cloned from: https://github.com/Ake3m/Techy
 
 " Techy is bot for NDHU Tech Club.
 Created purely for educational purposes. "
