@@ -1,60 +1,46 @@
-//importing credentials from JSON file
-const {TOKEN, GUILD_ID, CLIENT_ID} = require('./botCredentials.json')
-//importing discord.js
-const { Client, GatewayIntentBits, REST, Routes } = require('discord.js');
+const {TOKEN, GUILD_ID, CLIENT_ID} = require('./config.json')
+const fs=require('node:fs');
+const path=require('node:path');
+const {Client, Events, GatewayIntentBits, Collection} = require('discord.js');
 
-//Creates command tooltips when typing in the command
-const commands = [
-  {
-    name: 'pang',
-    description: 'Gives you a reply',
-  },
-  {
-    name:'joke',
-    description:'Replies with a joke',
-  }
-];
+const client = new Client({intents: [7796]});
 
-const rest = new REST({ version: '10' }).setToken(TOKEN);
+client.commands=new Collection();
 
-//reloads the command tooltips (tooltips are stored locally in the server after definition)
-(async () => {
-  try {
-    console.log('Started refreshing application (/) commands.');
+//Handling Commands files
+const commandsPath=path.join(__dirname,'commands');
+const commandFiles=fs.readdirSync(commandsPath).filter(file=>file.endsWith('.js'));
 
-    await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
+for (const file of commandFiles) {
+	const filePath = path.join(commandsPath, file);
+	const command = require(filePath);
 
-    console.log('Successfully reloaded application (/) commands.');
-  } catch (error) {
-    console.error(error);
-  }
-})();
+	if('data' in command && 'execute' in command) {
+		client.commands.set(command.data.name, command);
+	}
+	
+	else {
+		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+	}
+}
 
+//Handling event files
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
-//Defining rules
-const client = new Client({ intents: [7796] })
+for (const file of eventFiles) {
+	const filePath = path.join(eventsPath, file);
+	const event = require(filePath);
 
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
 
-const {SlashCommandBuilder} = require('discord.js');
-const {generateJoke} = require('./joke_generator.js');
+	} 
+	
+	else {
+		client.on(event.name, (...args) => event.execute(...args));
+	}
+}
 
-client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
-});
-
-client.on('interactionCreate', async interaction => {
-  if (!interaction.isChatInputCommand()) return;
-
-  if (interaction.commandName === 'pang') {
-    await interaction.reply('Pong!');
-  }
-
-  if (interaction.commandName === 'joke') {
-    await interaction.reply(generateJoke());
-  }
-
-  }
-);
-
-//Starting BOT
+//Starting bot
 client.login(TOKEN);
